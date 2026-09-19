@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react"
+import { qrPdfBlob } from "./lib/pdf"
 import { drawQr, qrPngDataUrl, qrSvg } from "./lib/qr"
 import { downloadName, normalizeUrl } from "./lib/url"
 
@@ -6,13 +7,16 @@ const SAMPLE = "https://example.com"
 const DISPLAY_SIZE = 320
 const EXPORT_SIZE = 1024
 
+const exportBtnClass =
+  "inline-flex h-11 min-h-11 w-full items-center justify-center border border-ink/20 bg-plate px-3 text-sm text-ink transition-colors hover:border-ink hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mark"
+
 function Finder({ className }: { className?: string }) {
   return (
     <div
-      className={`relative size-14 border-[5px] border-ink ${className ?? ""}`}
+      className={`relative size-10 border-[4px] border-ink sm:size-14 sm:border-[5px] ${className ?? ""}`}
       aria-hidden="true"
     >
-      <div className="absolute inset-[3px] border-[9px] border-ink" />
+      <div className="absolute inset-[3px] border-[7px] border-ink sm:border-[9px]" />
     </div>
   )
 }
@@ -118,6 +122,13 @@ export default function App() {
     setNotice("SVG saved")
   }
 
+  async function savePdf() {
+    if (!encoded) return
+    const dataUrl = await qrPngDataUrl(encoded, EXPORT_SIZE)
+    downloadBlob(`${downloadName(encoded)}.pdf`, qrPdfBlob(encoded, dataUrl))
+    setNotice("PDF saved")
+  }
+
   async function copyPng() {
     if (!encoded) return
     try {
@@ -133,47 +144,52 @@ export default function App() {
   const destination = encoded
 
   return (
-    <div className="min-h-svh bg-shell px-3 py-3 sm:px-5 sm:py-5">
-      <div className="paper-grain relative mx-auto flex min-h-[calc(100svh-1.5rem)] max-w-[1180px] flex-col overflow-hidden rounded-[28px] shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:min-h-[calc(100svh-2.5rem)]">
+    <div className="min-h-svh min-w-0 bg-shell px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-5">
+      <div className="paper-grain relative mx-auto flex min-h-[calc(100svh-1.5rem)] w-full min-w-0 max-w-[1180px] flex-col overflow-x-clip rounded-[20px] shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:min-h-[calc(100svh-2.5rem)] sm:rounded-[28px]">
         <span className="corner-bracket tl" />
         <span className="corner-bracket tr" />
         <span className="corner-bracket bl" />
         <span className="corner-bracket br" />
 
-        <header className="relative z-10 flex items-center justify-between gap-4 border-b border-rule px-5 py-4 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid size-8 place-items-center border border-ink/80" aria-hidden="true">
-              <span className="block size-3 bg-mark" />
+        <header className="relative z-10 flex items-center justify-between gap-3 border-b border-rule px-4 py-3 sm:gap-4 sm:px-8 sm:py-4">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <span
+              className="grid size-7 shrink-0 place-items-center border border-ink/80 sm:size-8"
+              aria-hidden="true"
+            >
+              <span className="block size-2.5 bg-mark sm:size-3" />
             </span>
-            <p className="font-serif text-xl tracking-tight text-ink">Plate</p>
+            <p className="font-serif text-lg tracking-tight text-ink sm:text-xl">
+              Plate
+            </p>
           </div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted">
-            Client-side · ECC-H
+          <p className="shrink-0 font-mono text-[10px] uppercase tracking-[0.14em] text-muted sm:text-[11px] sm:tracking-[0.22em]">
+            <span className="hidden sm:inline">Client-side · </span>ECC-H
           </p>
         </header>
 
-        <main className="relative z-10 grid flex-1 lg:grid-cols-2">
-          <section className="flex flex-col justify-center border-b border-rule px-5 py-8 sm:px-8 sm:py-10 lg:border-b-0 lg:border-r">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mark">
+        <main className="relative z-10 grid min-w-0 flex-1 lg:grid-cols-2">
+          <section className="flex min-w-0 flex-col justify-center border-b border-rule px-4 py-6 sm:px-8 sm:py-10 lg:border-b-0 lg:border-r">
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mark sm:text-[11px] sm:tracking-[0.22em]">
                 01 // Destination
               </p>
-              <h1 className="mt-4 max-w-[16ch] font-serif text-[2.6rem] leading-[1.05] tracking-tight text-ink sm:text-5xl">
+              <h1 className="mt-3 max-w-[16ch] font-serif text-[2rem] leading-[1.08] tracking-tight text-ink min-[400px]:text-[2.35rem] sm:mt-4 sm:text-5xl">
                 Paste a link. Get a mark that opens it.
               </h1>
-              <p className="mt-5 max-w-md text-pretty text-base leading-relaxed text-muted">
+              <p className="mt-4 max-w-md text-pretty text-[0.95rem] leading-relaxed text-muted sm:mt-5 sm:text-base">
                 The QR stores your URL. A camera reads those squares and sends
                 the scanner to that page — no account, no extra redirect.
               </p>
 
-              <form className="mt-8" onSubmit={onSubmit}>
+              <form className="mt-6 sm:mt-8" onSubmit={onSubmit}>
                 <label
                   htmlFor={inputId}
-                  className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink"
+                  className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink sm:text-[11px]"
                 >
                   Destination URL
                 </label>
-                <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-2 flex flex-col gap-3 min-[520px]:flex-row lg:flex-col xl:flex-row">
                   <input
                     id={inputId}
                     type="text"
@@ -188,20 +204,20 @@ export default function App() {
                     }}
                     aria-invalid={Boolean(error)}
                     aria-describedby={error ? errorId : hintId}
-                    className="h-12 min-h-12 w-full border border-ink/20 bg-plate px-4 font-mono text-sm text-ink outline-none transition-colors placeholder:text-muted/60 hover:border-ink/40 focus:border-ink focus:ring-2 focus:ring-mark/40"
+                    className="h-12 min-h-12 w-full min-w-0 border border-ink/20 bg-plate px-3 font-mono text-sm text-ink outline-none transition-colors placeholder:text-muted/60 hover:border-ink/40 focus:border-ink focus:ring-2 focus:ring-mark/40 sm:px-4"
                   />
                   <button
                     type="submit"
-                    className="inline-flex h-12 min-h-12 shrink-0 items-center justify-center bg-ink px-6 text-sm font-medium text-plate transition-colors hover:bg-mark active:bg-mark-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mark focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+                    className="inline-flex h-12 min-h-12 w-full shrink-0 items-center justify-center bg-ink px-6 text-sm font-medium text-plate transition-colors hover:bg-mark active:bg-mark-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mark focus-visible:ring-offset-2 focus-visible:ring-offset-paper min-[520px]:w-auto lg:w-full xl:w-auto"
                   >
                     Make the mark
                   </button>
                 </div>
-                <p id={hintId} className="mt-2 text-sm text-muted">
+                <p id={hintId} className="mt-2 text-sm leading-6 text-muted">
                   https is added if you leave it off.{" "}
                   <button
                     type="button"
-                    className="underline decoration-rule underline-offset-4 transition-colors hover:text-ink hover:decoration-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mark"
+                    className="inline-flex min-h-11 items-center underline decoration-rule underline-offset-4 transition-colors hover:text-ink hover:decoration-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mark"
                     onClick={() => {
                       setValue(SAMPLE)
                       generateFrom(SAMPLE, { persist: true })
@@ -226,34 +242,34 @@ export default function App() {
 
           <section
             id="plate"
-            className="relative flex flex-col bg-paper-2 px-5 py-8 sm:px-8 sm:py-10"
+            className="relative flex min-w-0 flex-col bg-paper-2 px-4 py-6 sm:px-8 sm:py-10"
           >
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mark">
+            <div className="mb-5 flex items-start justify-between gap-3 sm:mb-6 sm:gap-4">
+              <div className="min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mark sm:text-[11px] sm:tracking-[0.22em]">
                   02 // Plate
                 </p>
-                <h2 className="mt-2 font-serif text-2xl tracking-tight text-ink">
+                <h2 className="mt-2 font-serif text-xl tracking-tight text-ink sm:text-2xl">
                   {destination ? "Ready to scan" : "Awaiting destination"}
                 </h2>
               </div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+              <p className="shrink-0 pt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted sm:text-[11px] sm:tracking-[0.18em]">
                 {busy ? "Drawing" : destination ? "Live" : "Idle"}
               </p>
             </div>
 
-            <div className="relative mx-auto grid w-full max-w-[420px] flex-1 place-items-center">
-              <span className="crop-mark tl -top-2 -left-2" />
-              <span className="crop-mark tr -top-2 -right-2" />
-              <span className="crop-mark bl -bottom-2 -left-2" />
-              <span className="crop-mark br -bottom-2 -right-2" />
+            <div className="relative mx-auto grid w-full max-w-[min(100%,420px)] flex-1 place-items-center px-2 sm:px-0">
+              <span className="crop-mark tl -top-1 -left-1 sm:-top-2 sm:-left-2" />
+              <span className="crop-mark tr -top-1 -right-1 sm:-top-2 sm:-right-2" />
+              <span className="crop-mark bl -bottom-1 -left-1 sm:-bottom-2 sm:-left-2" />
+              <span className="crop-mark br -bottom-1 -right-1 sm:-bottom-2 sm:-right-2" />
 
-              <div className="relative aspect-square w-full max-w-[360px] border border-ink/15 bg-plate p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_18px_40px_rgba(28,24,20,0.08)]">
+              <div className="relative aspect-square w-full max-w-[360px] border border-ink/15 bg-plate p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_18px_40px_rgba(28,24,20,0.08)] sm:p-6">
                 <canvas
                   ref={canvasRef}
                   width={DISPLAY_SIZE}
                   height={DISPLAY_SIZE}
-                  className={`size-full ${destination ? "block" : "hidden"}`}
+                  className={`h-auto w-full max-w-full ${destination ? "block" : "hidden"}`}
                   aria-label={
                     destination
                       ? `QR code for ${destination}`
@@ -261,11 +277,11 @@ export default function App() {
                   }
                 />
                 {!destination ? (
-                  <div className="relative size-full">
+                  <div className="relative size-full min-h-[200px]">
                     <Finder className="absolute top-0 left-0" />
                     <Finder className="absolute top-0 right-0" />
                     <Finder className="absolute bottom-0 left-0" />
-                    <p className="absolute inset-0 m-auto h-fit max-w-[14ch] text-center font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+                    <p className="absolute inset-0 m-auto h-fit max-w-[14ch] px-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted sm:text-[11px] sm:tracking-[0.18em]">
                       Enter a URL to compose
                     </p>
                   </div>
@@ -273,21 +289,21 @@ export default function App() {
               </div>
             </div>
 
-            <div className="mt-8 space-y-4">
+            <div className="mt-6 min-w-0 space-y-4 sm:mt-8">
               <dl className="border-t border-rule pt-4">
-                <div className="flex items-baseline justify-between gap-4 py-2">
-                  <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+                <div className="flex flex-col gap-1 py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                  <dt className="shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-muted sm:text-[11px]">
                     Encoded
                   </dt>
-                  <dd className="truncate font-mono text-xs text-ink">
+                  <dd className="min-w-0 break-all font-mono text-xs text-ink sm:truncate sm:text-right">
                     {destination ?? "—"}
                   </dd>
                 </div>
-                <div className="flex items-baseline justify-between gap-4 border-t border-rule py-2">
-                  <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+                <div className="flex flex-col gap-1 border-t border-rule py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                  <dt className="shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-muted sm:text-[11px]">
                     Scan result
                   </dt>
-                  <dd className="text-right text-sm text-ink">
+                  <dd className="text-sm text-ink sm:text-right">
                     {destination
                       ? "Opens this URL in the camera browser"
                       : "Nothing yet"}
@@ -295,12 +311,12 @@ export default function App() {
                 </div>
               </dl>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <button
                   type="button"
                   onClick={savePng}
                   disabled={!destination}
-                  className="inline-flex h-11 min-h-11 items-center border border-ink/20 bg-plate px-4 text-sm text-ink transition-colors hover:border-ink hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mark"
+                  className={exportBtnClass}
                 >
                   Download PNG
                 </button>
@@ -308,35 +324,46 @@ export default function App() {
                   type="button"
                   onClick={saveSvg}
                   disabled={!destination}
-                  className="inline-flex h-11 min-h-11 items-center border border-ink/20 bg-plate px-4 text-sm text-ink transition-colors hover:border-ink hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mark"
+                  className={exportBtnClass}
                 >
                   Download SVG
                 </button>
                 <button
                   type="button"
+                  onClick={savePdf}
+                  disabled={!destination}
+                  className={exportBtnClass}
+                >
+                  Download PDF
+                </button>
+                <button
+                  type="button"
                   onClick={copyPng}
                   disabled={!destination}
-                  className="inline-flex h-11 min-h-11 items-center border border-ink/20 bg-plate px-4 text-sm text-ink transition-colors hover:border-ink hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mark"
+                  className={exportBtnClass}
                 >
                   Copy image
                 </button>
               </div>
-              <p aria-live="polite" className="h-5 font-mono text-[11px] uppercase tracking-[0.18em] text-mark">
+              <p
+                aria-live="polite"
+                className="min-h-5 font-mono text-[10px] uppercase tracking-[0.16em] text-mark sm:text-[11px] sm:tracking-[0.18em]"
+              >
                 {notice}
               </p>
             </div>
           </section>
         </main>
 
-        <section className="relative z-10 border-t border-rule px-5 py-8 sm:px-8">
-          <ol className="grid gap-6 sm:grid-cols-3">
+        <section className="relative z-10 border-t border-rule px-4 py-6 sm:px-8 sm:py-8">
+          <ol className="grid gap-5 sm:grid-cols-3 sm:gap-6">
             {[
               ["01", "Paste the page you want people to reach."],
               ["02", "We encode that URL into a high-contrast QR."],
               ["03", "A scan opens the same link in their browser."],
             ].map(([step, copy]) => (
-              <li key={step}>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-mark">
+              <li key={step} className="min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mark sm:text-[11px]">
                   {step}
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{copy}</p>
@@ -345,9 +372,9 @@ export default function App() {
           </ol>
         </section>
 
-        <section className="relative z-10 grid gap-8 border-t border-rule px-5 py-8 sm:px-8 lg:grid-cols-2">
-          <div>
-            <h2 className="font-serif text-2xl tracking-tight text-ink">
+        <section className="relative z-10 grid min-w-0 gap-6 border-t border-rule px-4 py-6 sm:gap-8 sm:px-8 sm:py-8 lg:grid-cols-2">
+          <div className="min-w-0">
+            <h2 className="font-serif text-xl tracking-tight text-ink sm:text-2xl">
               What a scan actually does
             </h2>
             <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted">
@@ -357,7 +384,7 @@ export default function App() {
               as the destination page does.
             </p>
           </div>
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             {[
               [
                 "Does this expire?",
@@ -365,7 +392,7 @@ export default function App() {
               ],
               [
                 "Can I print it?",
-                "Yes. Download PNG for posters or SVG for sharp print at any size. Keep the quiet white border.",
+                "Yes. Download PNG, SVG, or a one-page PDF. Keep the quiet border around the mark.",
               ],
               [
                 "Is my link stored here?",
@@ -376,7 +403,7 @@ export default function App() {
                 key={question}
                 className="border-b border-rule pb-3 open:pb-3"
               >
-                <summary className="cursor-pointer list-none text-sm font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
                   {question}
                 </summary>
                 <p className="mt-2 text-sm leading-relaxed text-muted">
