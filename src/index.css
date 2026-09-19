@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-shell: #14110e;
+  --color-paper: #f2eadc;
+  --color-paper-2: #e7dcc8;
+  --color-plate: #f7f1e6;
+  --color-ink: #1c1814;
+  --color-muted: #6b6258;
+  --color-rule: #1c18141f;
+  --color-mark: #c24d1d;
+  --color-mark-ink: #9a3814;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-shell);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.paper-grain {
+  background-color: var(--color-paper);
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      rgba(28, 24, 20, 0.028) 0 1px,
+      transparent 1px 14px
+    );
+}
+
+.corner-bracket {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.corner-bracket.tl {
+  top: 10px;
+  left: 10px;
+  border-top: 1.5px solid var(--color-ink);
+  border-left: 1.5px solid var(--color-ink);
+}
+
+.corner-bracket.tr {
+  top: 10px;
+  right: 10px;
+  border-top: 1.5px solid var(--color-ink);
+  border-right: 1.5px solid var(--color-ink);
+}
+
+.corner-bracket.bl {
+  bottom: 10px;
+  left: 10px;
+  border-bottom: 1.5px solid var(--color-ink);
+  border-left: 1.5px solid var(--color-ink);
+}
+
+.corner-bracket.br {
+  bottom: 10px;
+  right: 10px;
+  border-bottom: 1.5px solid var(--color-ink);
+  border-right: 1.5px solid var(--color-ink);
+}
+
+.crop-mark {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.crop-mark::before,
+.crop-mark::after {
+  content: "";
+  position: absolute;
+  background: var(--color-ink);
+  opacity: 0.45;
+}
+
+.crop-mark.tl::before,
+.crop-mark.tr::before,
+.crop-mark.bl::before,
+.crop-mark.br::before {
+  width: 18px;
+  height: 1px;
+  top: 8px;
+  left: 0;
+}
+
+.crop-mark.tl::after,
+.crop-mark.tr::after,
+.crop-mark.bl::after,
+.crop-mark.br::after {
+  width: 1px;
+  height: 18px;
+  left: 8px;
+  top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
